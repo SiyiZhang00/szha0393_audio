@@ -3,30 +3,31 @@
 // Based on the group static version: PaletteSystem / DotSystem / Wheel / BeadArc / LayoutSystem
 // Audio: p5.Amplitude (Week 11) drives wheel rotation, bead scaling and background dot scaling.
 // Controls / Interaction instructions:
-//   - Click the "Play/Pause" button: start/stop music + animation
-//   - Press R / r: regenerate the composition (new random seed, new layout)
-//   - Press Shift + R: regenerate composition with the same seed (same layout)
-//   - Press S / s: save current frame as PNG
-//
+// - Click the "Play/Pause" button: start/stop music + animation
+// - Press R / r: regenerate the composition (new random seed, new layout)
+// - Press Shift + R: regenerate composition with the same seed (same layout)
+// - Press S / s: save current frame as PNG
+
 // COURSE LINKS:
-//   • Uses Week 10: static generative composition (layout + drawing).
-//   • Uses Week 11: p5.sound, p5.Amplitude, mapping audio level to visual parameters.
-//   • Everything else (arrays, loops, colour, etc.) is standard p5.js / JavaScript.
+// • Uses Week 10: static generative composition (layout + drawing).
+// • Uses Week 11: p5.sound, p5.Amplitude, mapping audio level to visual parameters.
+// • Everything else (arrays, loops, colour, etc.) is standard p5.js / JavaScript.
 // ======================================================
 
 // ------------------------
 // Audio globals (Week 11 idea: Amplitude → visual parameters)
 // ------------------------
-let song;          // Audio track loaded with loadSound() in preload()
-let analyser;      // p5.Amplitude analyser to measure RMS volume (Week 11 content)
-let playButton;    // DOM button created with p5's createButton()
+let song; // Audio track loaded with loadSound() in preload()
+let analyser; // p5.Amplitude analyser to measure RMS volume (Week 11 content)
+let playButton; // DOM button created with p5's createButton()
 
 // Audio-driven state (values updated only while music is playing)
-let audioLevel = 0;    // Current RMS audio level (0–~0.3), from analyser.getLevel()
-let audioNorm = 0;     // Normalised audio level (0–1), mapped from audioLevel
+let audioLevel = 0; // Current RMS audio level (0–~0.3), from analyser.getLevel()
+let audioNorm = 0; // Normalised audio level (0–1), mapped from audioLevel
 let wheelRotation = 0; // Global rotation angle applied to all wheels
-let beadScale = 1;     // Global scale factor for beads (outer rings + bead arcs)
-let bgScale = 1;       // Global scale factor for background dots
+let beadScale = 1; // Global scale factor for beads (outer rings + bead arcs)
+let bgScale = 1; // Global scale factor for background dots
+let flashAlpha = 0; //Add stroboscopic effect
 
 let SEED = 0;
 let wheels = [];
@@ -65,11 +66,11 @@ function setup() {
   playButton.mousePressed(togglePlay);
 
   regenerate(false);
-  noLoop();
+  noLoop(); // static output – no continuous animation
 }
 
 function draw() {
-  background(200, 40, 20); 
+  background(200, 40, 20); // deep teal background
   // --------------------------
   // 1. If music is playing, update audio-driven parameters
   // --------------------------
@@ -81,9 +82,8 @@ function draw() {
 
     // Defensive check: if library returns NaN or non-number, treat as 0
     // (This is general defensive programming practice, not a specific course topic.)
-    if (!isFinite(lvl)) {
+    if (!isFinite(lvl))
       lvl = 0;
-    }
     audioLevel = lvl;
 
     // Map RMS level (0–0.25) → 0–1 range (clamped)
@@ -91,18 +91,20 @@ function draw() {
     audioNorm = constrain(map(audioLevel, 0, 0.25, 0, 1), 0, 1);
 
     // Audio level → global rotation speed:
-    //   • low volume → slight rotation
-    //   • high volume → faster rotation
-    const rotSpeed = 0.01 + audioNorm * 0.25;
+    // • low volume → slight rotation
+    // • high volume → faster rotation
+    const rotSpeed = 0.01 + audioNorm * 0.15;
     wheelRotation += rotSpeed;
 
     // Audio level → bead scaling (outer rings + bead arcs):
-    //   • from 1.0 (no extra scale) up to 2.6
-    beadScale = 1.0 + audioNorm * 1.6;
+    // • from 1.0 (no extra scale) up to 3.5
+    beadScale = 1.0 + audioNorm * 2.5;
 
     // Audio level → background dot scaling:
-    //   • from 1.0 (no extra scale) up to 2.2
-    bgScale = 1.0 + audioNorm * 1.2;
+    // • from 1.0 (no extra scale) up to 2.7
+    bgScale = 1.0 + audioNorm * 1.7;
+
+    flashAlpha = 1.0 + audioNorm * 70
   }
 
   // --------------------------
@@ -121,9 +123,9 @@ function draw() {
 
 // ======================================================
 // Keyboard controls: R / Shift+R / S
-//   • R / r: regenerate with new seed
-//   • Shift+R: regenerate with same seed (layout stays similar)
-//   • S / s: save PNG
+// • R / r: regenerate with new seed
+// • Shift+R: regenerate with same seed (layout stays similar)
+// • S / s: save PNG
 // ======================================================
 function keyPressed() {
   if (key === "R" || key === "r") {
@@ -157,20 +159,21 @@ function togglePlay() {
     wheelRotation = 0;
     beadScale = 1;
     bgScale = 1;
+    flashAlpha = 0;
 
-    noLoop();   // Stop calling draw() every frame
-    redraw();   // Draw one static frame
+    noLoop(); // Stop calling draw() every frame
+    redraw(); // Draw one static frame
   } else {
     // If not playing → start audio + start animation
     // song.loop() ensures the track repeats, similar to class examples.
     song.loop();
-    loop();     // Resume continuous draw() calls
+    loop(); // Resume continuous draw() calls
   }
 }
 
 // ======================================================
 // Window resize: recompute layout and redraw
-//   • This is standard p5.js behaviour: adapt layout to new window size.
+// • This is standard p5.js behaviour: adapt layout to new window size.
 // ======================================================
 function windowResized() {
   resizeCanvas(windowWidth, windowHeight);
@@ -198,7 +201,7 @@ function windowResized() {
 //       explicitly covered in class. This follows a common JavaScript
 //       pattern described in general JS references (e.g. MDN bitwise operators).
 //       MDN reference:
-//         https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Bitwise_Operators
+//       https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Bitwise_Operators
 // ======================================================
 function newSeed() {
   SEED = (Date.now() ^ Math.floor(performance.now() * 1000) ^ Math.floor(Math.random() * 1e9)) >>> 0;
@@ -507,7 +510,7 @@ class BeadArc {
   }
 
   // Quadratic Bézier interpolation along the arc:
-  //   P(t) = (1 - t)^2 * A + 2(1 - t)t * C + t^2 * B
+  // P(t) = (1 - t)^2 * A + 2(1 - t)t * C + t^2 * B
   //
   // NOTE: The explicit quadratic Bézier formula was not covered step–by–step in class.
   //       This follows the standard quadratic Bézier definition as explained in many
