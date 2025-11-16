@@ -98,15 +98,12 @@ wheelRotation、beadScale 和 bgScale
 2. Play / Pause Logic and Static Fallback 
 function togglePlay() {
   if (!song) return;
-
   if (song.isPlaying()) {
     song.stop();
-
     audioLevel = 0;
     wheelRotation = 0;
     beadScale = 1;
     bgScale = 1;
-
     noLoop();
     redraw();
   } else {
