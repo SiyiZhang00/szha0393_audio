@@ -57,11 +57,6 @@ function setup() {
   analyser = new p5.Amplitude();
   analyser.setInput(song); // Connect the audio track to the analyser
 
-  // Play/Pause button
-  // NOTE: createButton() and DOM positioning are covered in p5.js DOM examples.
-  //       This is standard p5 DOM usage, similar to class examples.
-  // Reference:
-  //   https://p5js.org/reference/#/p5/createButton
   playButton = createButton("Play/Pause");
   playButton.position(
     (width - playButton.width) / 2,
