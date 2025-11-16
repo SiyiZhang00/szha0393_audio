@@ -5,13 +5,12 @@
 // Controls / Interaction instructions:
 // - Click the "Play/Pause" button: start/stop music + animation
 // - Press R / r: regenerate the composition (new random seed, new layout)
-// - Press Shift + R: regenerate composition with the same seed (same layout)
+// - Shift + R – Regenerate using the same seed
 // - Press S / s: save current frame as PNG
 
 // COURSE LINKS:
 // • Uses Week 10: static generative composition (layout + drawing).
 // • Uses Week 11: p5.sound, p5.Amplitude, mapping audio level to visual parameters.
-// • Everything else (arrays, loops, colour, etc.) is standard p5.js / JavaScript.
 // ======================================================
 
 // ------------------------
@@ -27,7 +26,7 @@ let audioNorm = 0; // Normalised audio level (0–1), mapped from audioLevel
 let wheelRotation = 0; // Global rotation angle applied to all wheels
 let beadScale = 1; // Global scale factor for beads (outer rings + bead arcs)
 let bgScale = 1; // Global scale factor for background dots
-let flashAlpha = 0; //Add stroboscopic effect
+//let flashAlpha = 0; //Add stroboscopic effect
 
 let SEED = 0;
 let wheels = [];
@@ -77,11 +76,10 @@ function draw() {
   let isPlaying = song && song.isPlaying();
   if (isPlaying) {
     // Get current RMS level (Week 11 technique):
-    //   audioLevel ≈ 0–0.3 for this track (depends on actual audio).
+    // audioLevel ≈ 0–0.3 for this track.
     let lvl = analyser.getLevel();
 
     // Defensive check: if library returns NaN or non-number, treat as 0
-    // (This is general defensive programming practice, not a specific course topic.)
     if (!isFinite(lvl))
       lvl = 0;
     audioLevel = lvl;
@@ -104,7 +102,7 @@ function draw() {
     // • from 1.0 (no extra scale) up to 2.7
     bgScale = 1.0 + audioNorm * 1.7;
 
-    flashAlpha = 1.0 + audioNorm * 70
+    //flashAlpha = 1.0 + audioNorm * 70
   }
 
   // --------------------------
@@ -114,17 +112,12 @@ function draw() {
   DotSystem.drawBackgroundDots(backgroundDots);
   for (const arc of beadArcs) arc.display();
   for (const w of wheels) w.display();
-
-  // Optional debug overlay (disabled by default):
-  // fill(0, 0, 100);
-  // textSize(14);
-  // text("playing: " + isPlaying + "  level: " + audioLevel.toFixed(3), 10, 20);
 }
 
 // ======================================================
 // Keyboard controls: R / Shift+R / S
 // • R / r: regenerate with new seed
-// • Shift+R: regenerate with same seed (layout stays similar)
+// Shift + R – Regenerate using the same seed
 // • S / s: save PNG
 // ======================================================
 function keyPressed() {
@@ -159,7 +152,7 @@ function togglePlay() {
     wheelRotation = 0;
     beadScale = 1;
     bgScale = 1;
-    flashAlpha = 0;
+    //flashAlpha = 0;
 
     noLoop(); // Stop calling draw() every frame
     redraw(); // Draw one static frame
@@ -196,10 +189,6 @@ function windowResized() {
 
 // ======================================================
 // Random seed & regeneration (same structure as static group version)
-// NOTE: The seed generation here uses bitwise operations on Date.now()
-//       and Math.random(). Bitwise operations (>>> and ^) were not
-//       explicitly covered in class. This follows a common JavaScript
-//       pattern described in general JS references (e.g. MDN bitwise operators).
 //       MDN reference:
 //       https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Bitwise_Operators
 // ======================================================
@@ -424,7 +413,6 @@ class Wheel {
 // Helper object for sunburst and stripe styles
 const WheelSystem = {
   // Draw a radial sunburst pattern
-  // (Basic polar coordinate geometry, consistent with course content.)
   drawSunburst(rad, col) {
     const rays = int(map(rad, 20, 220, 20, 40));
 
@@ -511,13 +499,10 @@ class BeadArc {
 
   // Quadratic Bézier interpolation along the arc:
   // P(t) = (1 - t)^2 * A + 2(1 - t)t * C + t^2 * B
-  //
-  // NOTE: The explicit quadratic Bézier formula was not covered step–by–step in class.
-  //       This follows the standard quadratic Bézier definition as explained in many
-  //       graphics references. For example, the maths is consistent with:
-  //       • Wikipedia: "Bézier curve"
-  //       • p5.js bezierPoint() reference:
-  //         https://p5js.org/reference/#/p5/bezierPoint
+  // the maths is consistent with:
+  // • Wikipedia: "Bézier curve"
+  // • p5.js bezierPoint() reference:
+  // https://p5js.org/reference/#/p5/bezierPoint
   _pointAt(t) {
     const mt = 1 - t;
     const x =
